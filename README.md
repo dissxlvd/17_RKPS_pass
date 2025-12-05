@@ -209,7 +209,7 @@ Expected result: 0x3C, 0x3C, 0x00, 0x90, 0x0F, 0x00, 0x70, 0x01, 0x00
 <tr>
 	<td>Бинарная операция <i>max()</i></td>
 	<td>max</td>
-	<td>max <i>&lt;destination&gt; &lt;op_1&gt; &lt;op_2&gt;</i></td>
+	<td>max <i>&lt;op_1&gt; &lt;destination&gt; &lt;op_2&gt;</i></td>
 	<td>Записать в адрес &lt;destination&gt; максимум из значений &lt;op_1&gt; &lt;op_2&gt;</td>
 </tr>
 </table>
@@ -218,5 +218,3 @@ Expected result: 0x3C, 0x3C, 0x00, 0x90, 0x0F, 0x00, 0x70, 0x01, 0x00
 
 <sub>[Вернуться к началу пункта](#2-спецификация-увм-учебной-виртуальной-машины)</sub>  
 <sub>**[Наверх](#задание-на-допуск-по-дисциплине-разработка-кроссплатформенных-программных-систем-ркпс)**</sub>
-
-
