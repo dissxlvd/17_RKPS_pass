@@ -1,6 +1,53 @@
 import sys
 import struct
 
+
+class BinaryEncoder:
+	@staticmethod
+	def encode_ldc(addr_b, const_c):
+		a = 13
+		word = (a & 0x1F) | \
+			((addr_b & 0x3FFFFF) << 5) | \
+			((const_c & 0xFFFF) << 27)
+
+		return struct.pack('<Q', word)[:6]
+
+
+	@staticmethod
+	def encode_ldm(addr_b, addr_c):
+		a = 31
+		word = (a & 0x1F) | \
+			((addr_b & 0x3FFFFF) << 5) | \
+			((addr_c & 0x3FFFFF) << 27)
+
+		return struct.pack('<Q', word)[:7]
+
+
+	@staticmethod
+	def encode_stm(addr_b, addr_c):
+		a = 7
+		word = (a & 0x1F) | \
+			((addr_b & 0x3FFFFF) << 5) | \
+			((addr_c & 0x3FFFFF) << 27)
+
+		return struct.pack('<Q', word)[:7]
+
+
+	@staticmethod
+	def encode_max(addr_b, addr_c, addr_d):
+		a = 28
+		word = (a & 0x1F) | \
+			((addr_b & 0x3FFFFF) << 5) | \
+			((addr_c & 0x3FFFFF) << 27) | \
+			((addr_d & 0x3FFFFF) << 49)
+
+		result = bytearray(9)
+		for i in range(9):
+			result[i] = (word >> (i * 8)) & 0xFF
+
+		return bytes(result)
+
+
 class Assembler:
 	def __init__(self):
 		self.commands = []
@@ -81,6 +128,46 @@ class Assembler:
 		print('-' * 25)
 		print('tst:\tA = 28, B = 481, C = 498, D = 184')
 		print('exp:\t0x3C, 0x3C, 0x00, 0x90, 0x0F, 0x00, 0x70, 0x01, 0x00')
+	
+
+	def generate_binary(self, ir):
+		binary_code = bytearray()
+
+		for cmd in ir:
+			opcode = cmd['opcode']
+			args = cmd['args']
+
+			if opcode == 'ldc':
+				binary_code.extend(BinaryEncoder.encode_ldc(args[0], args[1]))
+			elif opcode == 'ldm':
+				binary_code.extend(BinaryEncoder.encode_ldm(args[0], args[1]))
+			elif opcode == 'stm':
+				binary_code.extend(BinaryEncoder.encode_stm(args[0], args[1]))
+			elif opcode == 'max':
+				binary_code.extend(BinaryEncoder.encode_max(args[0], args[1], args[2]))
+
+		return bytes(binary_code)
+	
+
+	def assemble_binary(self, src, out, test_mode=False):
+		ir = self.assemble(src, out, test_mode)
+		binary = self.generate_binary(ir)
+
+		with open(out, 'wb') as f:
+			f.write(binary)
+
+		print(f'Размер выходного файла: {len(binary)} байт')
+
+		if test_mode:
+			print('\n-+ Byte Representation +-')
+			for i, byte in enumerate(binary):
+				print(f'0x{byte:02X}', end='')
+				if (i + 1) % 8 == 0:
+					print()
+				elif i != len(binary) - 1:
+					print(', ', end='')
+			
+			print()
 
 
 def main():
@@ -93,12 +180,7 @@ def main():
 	test_mode = '--test' in sys.argv
 
 	assembler = Assembler()
-	ir = assembler.assemble(f_in, f_out, test_mode)
-
-	if test_mode:
-		print('\nРезультат тестирования:')
-		for i, cmd in enumerate(ir):
-			print(f'{i:3d}: {cmd}')
+	assembler.assemble_binary(f_in, f_out, test_mode)
 
 
 if __name__ == '__main__':
